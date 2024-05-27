@@ -53,7 +53,7 @@ $(document).ready(function () {
 
   // Fetch restaurants data
   $(document).on("pagecreate", "#restaurantListPage", function () {
-    $.get("http://localhost:3000/restaurants", function (data, status) {
+    $.get(`${domainUrl}/restaurants`, function (data, status) {
       if (status === "success") {
         var $list = $("#restaurantList");
         $list.empty();
@@ -76,15 +76,13 @@ $(document).ready(function () {
   // Event handler for restaurant list item clicks
   $(document).on("click", "#restaurantList li a", function (event) {
     var restaurantId = $(this).data("id");
-    $.get(
-      "http://localhost:3000/menuItems/" + restaurantId,
-      function (data, status) {
-        if (status === "success") {
-          var $list = $("#menuItemList");
-          $list.empty();
+    $.get(`${domainUrl}/menuItems/${restaurantId}`, function (data, status) {
+      if (status === "success") {
+        var $list = $("#menuItemList");
+        $list.empty();
 
-          $.each(data, function (i, item) {
-            var $listItem = $(`
+        $.each(data, function (i, item) {
+          var $listItem = $(`
                       <li>
                           <a href="#" data-id="${item._id}" data-transition="slide">
                               <img src="${item.image_source}" alt="${item.name}" class="item-img">
@@ -95,20 +93,15 @@ $(document).ready(function () {
                               </p>
                           </a>
                       </li>`);
-            $list.append($listItem);
-          });
+          $list.append($listItem);
+        });
 
-          $list.listview("refresh");
-        } else {
-          console.error(
-            "Failed to fetch restaurant details. Status: " + status
-          );
-          alert(
-            "Failed to load the restaurant details. Please try again later."
-          );
-        }
+        $list.listview("refresh");
+      } else {
+        console.error("Failed to fetch restaurant details. Status: " + status);
+        alert("Failed to load the restaurant details. Please try again later.");
       }
-    );
+    });
   });
 
   // Event handler for menu list item clicks
@@ -119,7 +112,9 @@ $(document).ready(function () {
     selectedItem.description = $(this).find(".item-desc").text();
     selectedItem.image = $(this).find(".item-img").attr("src");
 
-    $.mobile.changePage("#addOrderPage", { transition: "slide" });
+    $.mobile.changePage("#addOrderPage", {
+      transition: "slide",
+    });
   });
 
   // Initiate order page
@@ -186,6 +181,11 @@ $(document).ready(function () {
     $("#total-price").text(totalPrice);
   });
 
+  $("#clearBasketButton").click(function () {
+    localStorage.removeItem("orders");
+    loadBasketItems();
+  });
+
   $("#basketPage").on("pageshow", function () {
     loadBasketItems();
   });
@@ -225,7 +225,9 @@ $(document).ready(function () {
       .done(function (data) {
         console.log("Orders placed successfully:", data);
         localStorage.removeItem("orders");
-        $.mobile.changePage("#homePage", { transition: "slide" });
+        $.mobile.changePage("#homePage", {
+          transition: "slide",
+        });
       })
       .fail(function (xhr, status, error) {
         console.error("Error during checkout:", status, error);
@@ -236,29 +238,54 @@ $(document).ready(function () {
     var userId = localStorage.getItem("userId");
     $.get(`${domainUrl}/orderList/${userId}`, function (data, status) {
       if (status === "success") {
-        // Clear existing list items
-        $("#orderList").empty();
+        var $list = $("#orderList");
+        $list.empty();
 
-        // Iterate over each order and create list item
-        data.forEach(function (order) {
-          // Create list item for each order
-          var $orderItem = $("<li>").append(
-            $("<h2>").text("Order ID: " + order._id), // Assuming order ID is stored in _id field
-            $("<p>").text("User ID: " + order.user_id), // Assuming user ID is stored in user_id field
-            $("<p>").text("Total Items: " + order.items.length) // Assuming items array contains order items
+        $.each(data, function (i, order) {
+          var totalPrice = 0;
+          var itemsHtml = order.items
+            .map(function (item) {
+              var itemTotalPrice = item.count * item.price;
+              totalPrice += itemTotalPrice;
+              return `<p>${
+                item.name
+              } - Qty:${item.count}, $${item.count * item.price}</p>`;
+            })
+            .join("");
+
+          var $listItem = $(
+            `<li><div data-id="${
+              order._id
+            }" data-transition="slide"><h2>${new Date(
+              order.date
+            ).toLocaleString()}</h2>${itemsHtml}
+            
+            <hr>
+            <p><strong>Total Price: $${totalPrice.toFixed(2)}</strong></p>
+            </div></li>`
           );
-
-          // Append order item to order list
-          $("#orderList").append($orderItem);
+          $list.append($listItem);
         });
 
-        // Refresh listview
-        $("#orderList").listview("refresh");
+        $list.listview("refresh");
       } else {
         console.error("Failed to fetch restaurant details. Status: " + status);
         alert("Failed to load the restaurant details. Please try again later.");
       }
     });
+  });
+
+  $(document).on("pagecontainerbeforehide", function () {
+    $("[data-role='navbar'] a").removeClass("ui-btn-active");
+  });
+
+  $(document).on("pagecontainershow", function () {
+    var currentPageId = $.mobile.pageContainer
+      .pagecontainer("getActivePage")
+      .prop("id");
+    $("[data-role='navbar'] a[href='#" + currentPageId + "']").addClass(
+      "ui-btn-active"
+    );
   });
 
   // Fetch last 3 orders and populate the latest orders list
@@ -302,7 +329,7 @@ $(document).ready(function () {
       }
     });
 
-    $.get("http://localhost:3000/restaurants", function (data, status) {
+    $.get(`${domainUrl}/restaurants`, function (data, status) {
       if (status === "success") {
         var $list = $("#suggestedRestaurants");
         $list.empty();
@@ -322,162 +349,10 @@ $(document).ready(function () {
     });
   });
 
-  // Select gift category and save to localStorage
-  $("#itemList li").click(function () {
-    var itemName = $(this).find(".itemName").text();
-    var itemPrice = $(this).find(".itemPrice").text();
-    var itemImage = $(this).find(".itemImage").attr("src");
-
-    localStorage.setItem("itemName", itemName);
-    localStorage.setItem("itemPrice", itemPrice);
-    localStorage.setItem("itemImage", itemImage);
-  });
-
-  // Order form validation and submission
-  $("#orderForm").validate({
-    focusInvalid: false,
-    onkeyup: false,
-    submitHandler: function (form) {
-      var formData = $(form).serializeArray();
-      var orderInfo = {};
-
-      formData.forEach(function (data) {
-        orderInfo[data.name] = data.value;
-      });
-
-      orderInfo.itemName = localStorage.getItem("itemName");
-      orderInfo.itemPrice = localStorage.getItem("itemPrice");
-      orderInfo.itemImage = localStorage.getItem("itemImage");
-      var userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      orderInfo.customerfName = userInfo.firstName;
-      orderInfo.customerlName = userInfo.lastName;
-
-      $.post(
-        "http://localhost:3000/postOrderData",
-        orderInfo,
-        function (data, status) {
-          if (debug) alert("Data sent: " + JSON.stringify(data));
-          if (debug) alert("\nStatus: " + status);
-
-          // Clear form data
-          $("#orderForm").trigger("reset");
-          lastOrder = orderInfo;
-          $.mobile.changePage("#confirmPage");
-        }
-      );
-
-      if (debug) alert("Customer: " + JSON.stringify(userInfo));
-      if (debug) alert(JSON.stringify(orderInfo));
-    },
-
-    // Validation rules
-    rules: {
-      firstName: {
-        required: true,
-        rangelength: [1, 15],
-        validateName: true,
-      },
-      lastName: {
-        required: true,
-        rangelength: [1, 15],
-        validateName: true,
-      },
-      phoneNumber: {
-        required: true,
-        mobiletxt: true,
-      },
-      address: {
-        required: true,
-        rangelength: [1, 25],
-      },
-      postcode: {
-        required: true,
-        posttxt: true,
-      },
-    },
-
-    // Validation messages
-    messages: {
-      firstName: {
-        required: "Please enter your firstname",
-        rangelength: $.validator.format("Contains a maximum of {1} characters"),
-      },
-      lastName: {
-        required: "Please enter your lastname",
-        rangelength: $.validator.format("Contains a maximum of {1} characters"),
-      },
-      phoneNumber: {
-        required: "Phone number required",
-      },
-      address: {
-        required: "Delivery address required",
-        rangelength: $.validator.format("Contains a maximum of {1} characters"),
-      },
-      postcode: {
-        required: "Postcode required",
-      },
-    },
-  });
-
   // Initialization before login page is displayed
   $(document).on("pagebeforeshow", "#loginPage", function () {
     localStorage.removeItem("userInfo");
     authenticated = false;
-  });
-
-  // Populate the fill order page before it is displayed
-  $(document).on("pagecreate", "#fillOrderPage", function () {
-    $("#itemSelected").text(localStorage.getItem("itemName"));
-    $("#priceSelected").text(localStorage.getItem("itemPrice"));
-    $("#imageSelected").attr("src", localStorage.getItem("itemImage"));
-  });
-
-  // Populate the confirm page before it is displayed
-  $(document).on("pagebeforeshow", "#confirmPage", function () {
-    $("#orderConfirmation").html("");
-
-    if (lastOrder != null) {
-      $("#orderConfirmation").append("<br><table><tbody>");
-      $("#orderConfirmation").append(
-        '<tr><td>Customer: </td><td><span class="fcolor">' +
-          lastOrder.customerfName +
-          " " +
-          lastOrder.customerlName +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append(
-        '<tr><td>Item: </td><td><span class="fcolor">' +
-          lastOrder.itemName +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append(
-        '<tr><td>Price: </td><td><span class="fcolor">' +
-          lastOrder.itemPrice +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append(
-        '<tr><td>Recipient: </td><td><span class="fcolor">' +
-          lastOrder.firstName +
-          " " +
-          lastOrder.lastName +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append(
-        '<tr><td>Address: </td><td><span class="fcolor">' +
-          lastOrder.address +
-          " " +
-          lastOrder.postcode +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append(
-        '<tr><td>Dispatch date: </td><td><span class="fcolor">' +
-          lastOrder.date +
-          "</span></td></tr>"
-      );
-      $("#orderConfirmation").append("</tbody></table><br>");
-    } else {
-      $("#orderConfirmation").append("<h4>There is no order to display<h4>");
-    }
   });
 
   // Signup form validation and submission
@@ -498,20 +373,16 @@ $(document).ready(function () {
 
       if (debug) alert(JSON.stringify(userInfo));
 
-      $.post(
-        "http://localhost:3000/postUserData",
-        userInfo,
-        function (data, status) {
-          if (debug) console.log("Data sent: " + JSON.stringify(data));
-          if (debug) console.log("\nStatus: " + status);
+      $.post(`${domainUrl}/postUserData`, userInfo, function (data, status) {
+        if (debug) console.log("Data sent: " + JSON.stringify(data));
+        if (debug) console.log("\nStatus: " + status);
 
-          // Redirects successfully registered user to home page
-          localStorage.setItem("authenticated", true);
-          alert("Successfully signed up.");
-          localStorage.setItem("userInfo", JSON.stringify(userInfo));
-          $.mobile.changePage("#homePage");
-        }
-      );
+        // Redirects successfully registered user to home page
+        localStorage.setItem("authenticated", true);
+        alert("Successfully signed up.");
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+        $.mobile.changePage("#homePage");
+      });
     },
 
     // Validation rules
@@ -580,45 +451,5 @@ $(document).ready(function () {
         required: "Postcode required",
       },
     },
-  });
-
-  // Delete orders button click handler
-  $("#deletOrders").on("click", function () {
-    localStorage.removeItem("orderInfo");
-
-    if (localStorage.userInfo != null) {
-      var userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
-      var filter = {
-        customerfName: userInfo.firstName,
-        customerlName: userInfo.lastName,
-      };
-
-      $.ajax({
-        url: "http://localhost:3000/deleteOrders",
-        type: "DELETE",
-        contentType: "application/json",
-        data: JSON.stringify(filter),
-        success: function (data) {
-          console.log("Orders deleted successfully:", data);
-
-          $.mobile.changePage("#deleteOrderPage");
-
-          $("#deleteOrder").html("");
-          if (data.deletedCount > 0) {
-            $("#deleteOrder").append(
-              "<h4> " + data.deletedCount + " orders deleted</h4>"
-            );
-          } else {
-            $("#deleteOrder").append(
-              "<h4>No orders found for the current user.</h4>"
-            );
-          }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-          console.error("Error deleting orders:", textStatus, errorThrown);
-        },
-      });
-    }
   });
 });
