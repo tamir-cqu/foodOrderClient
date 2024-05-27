@@ -1,0 +1,256 @@
+/* style.css */
+
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+}
+* {
+  text-shadow: none !important;
+}
+
+h1 {
+  font-size: 1.8em;
+  color: #333;
+  text-align: center;
+}
+
+p {
+  color: #666;
+}
+
+.text-white {
+  color: white;
+}
+
+/* Header and Footer */
+[data-role="header"],
+[data-role="footer"] {
+  background-color: #333;
+  color: #fff;
+}
+
+[data-role="content"] {
+  display: flex;
+  justify-content: center;
+  height: calc(
+    100vh - 100px
+  ); /* Adjust the height as needed, subtracting the height of the header and footer */
+}
+
+.footer p {
+  margin: 10px 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 400px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.wrap-big {
+  width: 100%;
+  max-width: 800px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.wrap.login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wrap.login img {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.ui-btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  text-align: center;
+  display: inline-block;
+  font-size: 1em;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.ui-btn:hover {
+  background-color: #0056b3;
+}
+
+.ui-btn.ui-icon-carat-l,
+.ui-btn.ui-icon-home,
+.ui-btn.ui-icon-power {
+  background-color: #007bff;
+  border: none;
+}
+
+/* Form Styles */
+
+form {
+  width: 100%;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+input::placeholder {
+  color: #bbb;
+}
+
+.fcolor {
+  color: #007bff;
+  font-weight: bold;
+}
+
+/* List Styles */
+.ilist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ilist li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #fff;
+  margin-bottom: 10px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+.ilist li img {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ilist li div {
+  flex: 1;
+}
+
+.itemImage {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.itemName {
+  font-size: 1.2em;
+  color: #333;
+}
+
+.itemPrice {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.btn-success {
+  background-color: #1d519e !important;
+  border-color: #1d519e !important;
+  color: white !important;
+}
+
+.btn-warning {
+  background-color: #f0c419 !important;
+  color: white !important;
+}
+
+.btn-info {
+  background-color: #651ba1 !important;
+  color: white !important;
+}
+
+.count-controls {
+  display: inline-flex;
+  align-items: center;
+}
+.count-controls button {
+  margin: 0;
+  text-align: center;
+}
+.count-controls input {
+  height: 40px;
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 50px !important;
+  text-align: center;
+}
+
+.heading-with-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.browse-all-link {
+  font-size: 14px;
+  color: #007bff;
+  text-decoration: none;
+  margin-right: 10px;
+}
+.browse-all-link:hover {
+  text-decoration: underline;
+}
+
+.item-img {
+  height: 100%;
+  margin-right: 15px;
+  object-fit: cover;
+}
+.item-image {
+  max-height: 200px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.order-image {
+  padding: 20px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5em;
+  }
+
+  .wrap {
+    padding: 10px;
+  }
+
+  form {
+    padding: 15px;
+  }
+
+  .ilist li {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ilist li img {
+    margin-bottom: 10px;
+  }
+}
