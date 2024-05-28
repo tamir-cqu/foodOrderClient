@@ -429,13 +429,18 @@ $(document).ready(function () {
         userInfo[data.name] = data.value;
       });
 
-      $.post(`${domainUrl}/postUserData`, userInfo, function (data, status) {
-        // Redirects successfully registered user to home page
-        localStorage.setItem("authenticated", true);
-        alert("Successfully signed up.");
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
-        $.mobile.changePage("#homePage");
-      });
+      $.post(`${domainUrl}/postUserData`, userInfo)
+        .done(function (data, status, xhr) {
+          localStorage.setItem("authenticated", true);
+          alert("Successfully signed up.");
+          localStorage.setItem("userInfo", JSON.stringify(userInfo));
+          localStorage.setItem("userId", data._id);
+          $(".user-name").text(userInfo.firstName + " " + userInfo.lastName);
+          $.mobile.changePage("#homePage");
+        })
+        .fail(function (xhr, status, error) {
+          alert("Sign up failed: " + xhr.responseText);
+        });
     },
 
     // Validation rules
