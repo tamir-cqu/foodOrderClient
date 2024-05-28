@@ -1,6 +1,7 @@
 const domainUrl = "http://localhost:3000";
 $(document).ready(function () {
   var selectedItem = {};
+  var restaurantId = -1;
 
   // Login validation and submission
   $("#loginForm").validate({
@@ -60,7 +61,10 @@ $(document).ready(function () {
 
         $.each(data, function (i, restaurant) {
           var $listItem = $(
-            `<li><a href="#menuItemsPage" data-id="${restaurant._id}" data-transition="slide"><img src="${restaurant.image_source}" alt="${restaurant.name}"><h2>${restaurant.name}</h2><p>${restaurant.description}</p></a></li>`
+            `<li><a href="#menuItemsPage" data-id="${restaurant._id}" data-transition="slide"><img src="${restaurant.image_source}" alt="${restaurant.name}"><h2>${restaurant.name}</h2><p>${restaurant.description}</p>
+            </a>
+            <a href="#reviewPopup" data-id="${restaurant._id}" class="review-button"></a>
+            </li>`
           );
           $list.append($listItem);
         });
@@ -73,9 +77,38 @@ $(document).ready(function () {
     });
   });
 
+  $(document).on("click", ".review-button", function () {
+    restaurantId = $(this).data("id");
+  });
+
+  $(document).on("click", ".review-submit-button", function () {
+    var userId = localStorage.getItem("userId");
+
+    var reviewData = {
+      restaurant_id: restaurantId,
+      review: $("#reviewText").val(),
+      user_id: userId,
+    };
+
+    $.post(`${domainUrl}/submitReview`, reviewData)
+      .done(function (data, status) {
+        alert("Review submitted successfully!");
+        $.mobile.changePage("#restaurantListPage", {
+          reverse: true,
+        });
+      })
+      .fail(function (xhr, status, error) {
+        console.error("Error during checkout:", status, error);
+      });
+  });
+
+  $(document).on("pageshow", "#reviewPopup", function () {
+    $("#reviewText").val("");
+  });
+
   // Event handler for restaurant list item clicks
   $(document).on("click", "#restaurantList li a", function (event) {
-    var restaurantId = $(this).data("id");
+    restaurantId = $(this).data("id");
     $.get(`${domainUrl}/menuItems/${restaurantId}`, function (data, status) {
       if (status === "success") {
         var $list = $("#menuItemList");
@@ -345,6 +378,35 @@ $(document).ready(function () {
       } else {
         console.error("Failed to fetch restaurants. Status: " + status);
         alert("Failed to load the restaurant list. Please try again later.");
+      }
+    });
+
+    $.get(`${domainUrl}/reviews`, function (data, status) {
+      if (status === "success") {
+        var $list = $("#reviewList");
+        $list.empty();
+
+        $.each(data, function (i, review) {
+          var $listItem = $(
+            `
+            <li data-role="list-divider">${new Date(
+              review.date
+            ).toLocaleString()}</li>
+            <li>
+              <h2>${review.restaurantName}</h2>
+              <p>
+                <strong> ${review.userName}</strong>
+              </p>
+              <p>${review.review}</p>
+          </li>
+            `
+          );
+          $list.append($listItem);
+        });
+        $list.listview("refresh");
+      } else {
+        console.error("Failed to fetch reviews. Status: " + status);
+        alert("Failed to load the review list. Please try again later.");
       }
     });
   });

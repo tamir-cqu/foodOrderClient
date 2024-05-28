@@ -231,6 +231,10 @@ input::placeholder {
   padding: 20px;
 }
 
+.modal-content{
+  padding: 10px;
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
   h1 {
