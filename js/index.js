@@ -1,4 +1,4 @@
-const domainUrl = "http://localhost:3000";
+const domainUrl = "https://foodorderserver.onrender.com";
 $(document).ready(function () {
   var selectedItem = {};
   var restaurantId = -1;
