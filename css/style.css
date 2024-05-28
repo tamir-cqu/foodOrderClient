@@ -234,6 +234,9 @@ input::placeholder {
 .modal-content{
   padding: 10px;
 }
+.error{
+  color: red;
+}
 
 /* Media Queries */
 @media (max-width: 768px) {

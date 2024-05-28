@@ -37,6 +37,7 @@ $(document).ready(function () {
             var user = data[0];
             localStorage.setItem("userInfo", JSON.stringify(user));
             localStorage.setItem("userId", user._id);
+            localStorage.removeItem("orders");
             $(".user-name").text(user.firstName + " " + user.lastName);
 
             $.mobile.changePage("#homePage");
@@ -417,11 +418,6 @@ $(document).ready(function () {
     authenticated = false;
   });
 
-  // Signup form validation and submission
-  $("#signupButton").on("click", function () {
-    $("#signupForm").submit();
-  });
-
   $("#signupForm").validate({
     focusInvalid: false,
     onkeyup: false,
@@ -433,12 +429,7 @@ $(document).ready(function () {
         userInfo[data.name] = data.value;
       });
 
-      if (debug) alert(JSON.stringify(userInfo));
-
       $.post(`${domainUrl}/postUserData`, userInfo, function (data, status) {
-        if (debug) console.log("Data sent: " + JSON.stringify(data));
-        if (debug) console.log("\nStatus: " + status);
-
         // Redirects successfully registered user to home page
         localStorage.setItem("authenticated", true);
         alert("Successfully signed up.");
